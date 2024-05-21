@@ -1,0 +1,25 @@
+
+
+.main {
+
+  color: var(--white);
+
+  text-align: center;
+
+  h1 {
+    font-size: 54px;
+    .importantLetter {
+      background: var(--gradient-black);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 1px 0 45px #00ff00;
+      font-size: 60px;
+    }
+  }
+
+  h3 {
+    font-size: 25px;
+    font-weight: 400;
+    font-style: italic;
+  }
+}

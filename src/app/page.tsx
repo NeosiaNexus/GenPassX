@@ -1,95 +1,86 @@
+"use client";
+
+import {useEffect, useState} from "react";
+
+import Head from "@/app/components/Head";
+import Input from "@/app/components/Input";
+import SelectSize from "@/app/components/SelectSize";
+
+import styles from './page.module.scss';
+import {toast} from "sonner";
 import Image from "next/image";
-import styles from "./page.module.css";
 
 export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    const [password, setPassword] = useState("");
+    const [randomPassword, setRandomPassword] = useState("");
+    const [size, setSize] = useState(8);
+    const [animate, setAnimate] = useState(false);
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+    const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ#&$@*!0123456789";
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+    const generateRandomPassword = () => {
+        toast.info("Génération du mot de passe...");
+        let newPassword = Array.from({length: size}, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join('');
+        setPassword(newPassword);
+        triggerAnimation(newPassword);
+    };
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+    const triggerAnimation = (finalPassword: string) => {
+        setAnimate(true);
+        let chars = Array(size).fill(''); // Initialize with empty strings for better UX
+        let indexes = Array.from({length: size}, (_, index) => index).sort(() => Math.random() - 0.5); // Shuffle once
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
+        const updatePassword = (idx: number) => {
+            chars[idx] = finalPassword[idx];
+            setRandomPassword(chars.join(''));
+        };
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+        const revealNextChar = () => {
+            if (indexes.length === 0) {
+                clearInterval(timer);
+                setAnimate(false);
+                toast.success("Mot de passe généré !");
+                return;
+            }
+            let index = indexes.shift(); // Sequential reveal based on shuffled order
+            updatePassword(index || 0);
+        };
+
+        const timer = setInterval(revealNextChar, 50);
+    };
+
+    useEffect(() => {
+        generateRandomPassword();
+    }, []);
+
+    return (
+        <main className={styles.main}>
+            <Image src={'/assets/images/newyork.jpg'} alt={"Photo de code matrix"} width={1920} height={1080}/>
+            <div className={styles.container}>
+                <Head/>
+                <div className={styles.mainContainer}>
+                    <div className={styles.sizeContainer}>
+                        <p>
+                            La taille du mot de passe doit être de
+                        </p>
+                        <SelectSize onChange={(e) => setSize(parseInt(e.target.value))}/>
+                    </div>
+                    <Input
+                        value={animate ? randomPassword : password}
+                        handleReload={generateRandomPassword}
+                        handleCopy={() => {
+                            navigator.clipboard.writeText(password);
+                            toast.success("Mot de passe copié !");
+                        }}
+                        disabled={animate}
+                    />
+                    <p className={styles.warn}>évitez de partager vos mots de passes à n&apos;importe qui. Ne les
+                        stockez pas dans des fichiers textes,
+                        sur des post-it ou dans un drive. Utilisez un gestionnaire de mots de passe pour stocker vos
+                        mots de
+                        passe en toute sécurité.</p>
+                </div>
+            </div>
+        </main>
+    );
 }
